@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Volume2, ArrowLeft, CheckCircle } from 'lucide-react';
 import { Language } from '../types';
-import { speak } from '../lib/utils';
+import { speak, playSound, SOUNDS, triggerConfetti } from '../lib/utils';
 import ModuleHeader from '../components/ModuleHeader';
 
 interface Props {
@@ -10,7 +10,7 @@ interface Props {
   titleKey: string;
   language: Language;
   onBack: () => void;
-  onComplete: () => void;
+  onComplete: (id?: string) => void;
   color: string;
 }
 
@@ -19,11 +19,13 @@ export default function GeneralModule({ items, titleKey, language, onBack, onCom
   const currentIndex = items.findIndex(item => item.id === selectedItem.id);
 
   const nextItem = () => {
+    playSound(SOUNDS.POP);
     const nextIdx = (currentIndex + 1) % items.length;
     setSelectedItem(items[nextIdx]);
   };
 
   const prevItem = () => {
+    playSound(SOUNDS.POP);
     const prevIdx = (currentIndex - 1 + items.length) % items.length;
     setSelectedItem(items[prevIdx]);
   };
@@ -55,63 +57,65 @@ export default function GeneralModule({ items, titleKey, language, onBack, onCom
           <div className="flex items-center gap-8 w-full">
             <button 
               onClick={prevItem}
-              className="p-4 bg-white rounded-full shadow-lg text-gray-400 hover:text-gray-800 transition-colors"
+              className="p-3 md:p-4 bg-white rounded-full shadow-lg text-gray-400 hover:text-gray-800 transition-colors"
             >
-              <ArrowLeft size={32} />
+              <ArrowLeft className="size-6 md:size-8" />
             </button>
 
             <div 
-              className={`flex-1 bg-white rounded-[4rem] p-8 shadow-2xl flex flex-col items-center gap-6 border-b-8 relative overflow-hidden`}
+              className={`flex-1 bg-white rounded-[2.5rem] md:rounded-[4rem] p-6 md:p-8 shadow-2xl flex flex-col items-center gap-4 md:gap-6 border-b-8 relative overflow-hidden`}
               style={{ borderBottomColor: borderColor }}
             >
-              <div className="relative w-full aspect-square">
+              <div className="relative w-full aspect-square max-w-[280px] md:max-w-none mx-auto">
                 <motion.img 
                   src={selectedItem.img} 
                   alt={selectedItem.name.en}
-                  className="w-full h-full object-cover rounded-[3rem] shadow-inner"
+                  className="w-full h-full object-cover rounded-[2rem] md:rounded-[3rem] shadow-inner"
                   referrerPolicy="no-referrer"
                 />
-                <div className="absolute -bottom-4 -right-4 bg-white p-4 rounded-3xl shadow-xl border-2 border-gray-50 text-7xl select-none">
+                <div className="absolute -bottom-2 md:-bottom-4 -right-2 md:-right-4 bg-white p-2 md:p-4 rounded-2xl md:rounded-3xl shadow-xl border-2 border-gray-50 text-4xl md:text-7xl select-none">
                   {selectedItem.icon}
                 </div>
               </div>
               
               <div className="text-center z-10 w-full">
-                <h3 className="text-5xl font-black text-gray-800 mb-2 truncate capitalize">
+                <h3 className="text-3xl md:text-5xl font-black text-gray-800 mb-1 md:mb-2 truncate capitalize">
                   {selectedItem.name[language] || selectedItem.name.en}
                 </h3>
                 {selectedItem.description && (
-                  <p className="text-xl text-gray-500 font-bold mb-6 max-w-lg mx-auto leading-relaxed">
+                  <p className="text-sm md:text-xl text-gray-500 font-bold mb-4 md:mb-6 max-w-lg mx-auto leading-relaxed">
                     {selectedItem.description[language] || selectedItem.description.en}
                   </p>
                 )}
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3 md:gap-4">
                   <button 
                     onClick={() => {
                       const name = selectedItem.name[language] || selectedItem.name.en;
                       const desc = selectedItem.description ? (selectedItem.description[language] || selectedItem.description.en) : '';
                       speak(name + (desc ? '. ' + desc : ''), language);
                     }}
-                    className={`p-6 bg-white border-4 rounded-[2.5rem] shadow-lg transition-all flex items-center justify-center gap-4 mx-auto w-full active:scale-95`}
+                    className={`p-4 md:p-6 bg-white border-4 rounded-[2rem] md:rounded-[2.5rem] shadow-lg transition-all flex items-center justify-center gap-3 md:gap-4 mx-auto w-full active:scale-95`}
                     style={{ color: borderColor, borderColor: borderColor }}
                   >
-                    <Volume2 size={32} />
-                    <span className="font-black text-2xl uppercase tracking-tighter">Listen</span>
+                    <Volume2 className="size-6 md:size-8" />
+                    <span className="font-black text-lg md:text-2xl uppercase tracking-tighter">Listen</span>
                   </button>
 
                   <button 
                     onClick={() => {
-                      onComplete();
+                      playSound(SOUNDS.TADA);
+                      triggerConfetti();
+                      onComplete(selectedItem.id);
                       if (currentIndex < items.length - 1) {
                         nextItem();
                       } else {
                         onBack();
                       }
                     }}
-                    className="p-6 bg-green-500 text-white rounded-[2.5rem] shadow-lg border-b-8 border-green-700 transition-all flex items-center justify-center gap-4 mx-auto w-full hover:scale-105 active:scale-95 active:border-b-0 active:translate-y-2"
+                    className="p-4 md:p-6 bg-green-500 text-white rounded-[2rem] md:rounded-[2.5rem] shadow-lg border-b-8 border-green-700 transition-all flex items-center justify-center gap-3 md:gap-4 mx-auto w-full hover:scale-105 active:scale-95 active:border-b-0 active:translate-y-2"
                   >
-                    <CheckCircle size={32} className="fill-white" />
-                    <span className="font-black text-2xl uppercase tracking-tighter">Done</span>
+                    <CheckCircle className="size-6 md:size-8 fill-white" />
+                    <span className="font-black text-lg md:text-2xl uppercase tracking-tighter">Done</span>
                   </button>
                 </div>
               </div>
@@ -119,9 +123,9 @@ export default function GeneralModule({ items, titleKey, language, onBack, onCom
 
             <button 
               onClick={nextItem}
-              className="p-4 bg-white rounded-full shadow-lg text-gray-400 hover:text-gray-800 transition-colors"
+              className="p-3 md:p-4 bg-white rounded-full shadow-lg text-gray-400 hover:text-gray-800 transition-colors"
             >
-              <ArrowLeft size={32} className="rotate-180" />
+              <ArrowLeft className="size-6 md:size-8 rotate-180" />
             </button>
           </div>
 

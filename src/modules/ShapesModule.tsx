@@ -3,13 +3,13 @@ import { motion } from 'motion/react';
 import { Volume2, ArrowLeft, CheckCircle } from 'lucide-react';
 import { SHAPES } from '../data/learningContent';
 import { Language } from '../types';
-import { speak } from '../lib/utils';
+import { speak, playSound, SOUNDS, triggerConfetti } from '../lib/utils';
 import ModuleHeader from '../components/ModuleHeader';
 
 interface Props {
   language: Language;
   onBack: () => void;
-  onComplete: () => void;
+  onComplete: (id?: string) => void;
 }
 
 export default function ShapesModule({ language, onBack, onComplete }: Props) {
@@ -17,10 +17,12 @@ export default function ShapesModule({ language, onBack, onComplete }: Props) {
   const selectedShape = SHAPES[currentIndex];
 
   const nextItem = () => {
+    playSound(SOUNDS.POP);
     setCurrentIndex((prev) => (prev + 1) % SHAPES.length);
   };
 
   const prevItem = () => {
+    playSound(SOUNDS.POP);
     setCurrentIndex((prev) => (prev - 1 + SHAPES.length) % SHAPES.length);
   };
 
@@ -90,7 +92,9 @@ export default function ShapesModule({ language, onBack, onComplete }: Props) {
 
                   <button 
                     onClick={() => {
-                      onComplete();
+                      playSound(SOUNDS.TADA);
+                      triggerConfetti();
+                      onComplete(`shape-${selectedShape.id}`);
                       if (currentIndex < SHAPES.length - 1) {
                         nextItem();
                       } else {

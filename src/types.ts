@@ -42,6 +42,7 @@ export interface UserProgress {
     speechSpeed: number;
     adsEnabled: boolean;
     interstitialFrequency: number; // 0 to 1 (probability)
+    defaultDonationAmount?: number;
   };
   analytics?: {
     [moduleId: string]: {

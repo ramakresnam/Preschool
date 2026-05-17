@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Volume2, Star, XCircle, Trophy, RefreshCw, Sparkles, GraduationCap } from 'lucide-react';
 import { ALPHABETS, ANIMALS, FRUITS, VEHICLES, SHAPES, BODY_PARTS, UI_TRANSLATIONS } from '../data/learningContent';
 import { Language } from '../types';
-import { speak } from '../lib/utils';
+import { speak, playSound, SOUNDS, triggerConfetti } from '../lib/utils';
 import ModuleHeader from '../components/ModuleHeader';
 
 interface Props {
@@ -119,16 +119,22 @@ export default function MasterQuizModule({ language, onBack, onComplete }: Props
     if (selected.id === currentQuestion?.correctAnswer.id) {
       setScore(prev => prev + 1);
       setFeedback('correct');
+      playSound(SOUNDS.SUCCESS);
       const wellDoneText = (UI_TRANSLATIONS.wellDone as any)[language] || UI_TRANSLATIONS.wellDone.en;
       speak(wellDoneText, language);
       
       if (totalAttempted + 1 >= 10) {
-        setTimeout(() => setIsFinished(true), 1500);
+        setTimeout(() => {
+          setIsFinished(true);
+          playSound(SOUNDS.TADA);
+          triggerConfetti();
+        }, 1500);
       } else {
         setTimeout(generateQuestion, 1500);
       }
     } else {
       setFeedback('wrong');
+      playSound(SOUNDS.ERROR);
       const tryAgainText = (UI_TRANSLATIONS.tryAgain as any)[language] || UI_TRANSLATIONS.tryAgain.en;
       speak(tryAgainText, language);
       setTimeout(() => setFeedback(null), 1000);
@@ -193,7 +199,7 @@ export default function MasterQuizModule({ language, onBack, onComplete }: Props
           <motion.div 
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="relative h-64 md:h-80 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-[3rem] shadow-2xl overflow-hidden flex flex-col items-center justify-center text-white border-b-8 border-indigo-900/20"
+            className="relative h-40 md:h-64 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-[2rem] md:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col items-center justify-center text-white border-b-8 border-indigo-900/20"
           >
             <div className="absolute inset-0 bg-black/10 mix-blend-overlay" />
             <motion.img 
@@ -201,7 +207,7 @@ export default function MasterQuizModule({ language, onBack, onComplete }: Props
               transition={{ repeat: Infinity, duration: 4 }}
               src={ASSETS.kids}
               alt="Kids"
-              className="absolute -left-10 md:left-0 top-1/2 -translate-y-1/2 w-48 md:w-64 h-48 md:h-64 object-cover rounded-full border-4 border-white/50 blur-[1px] md:blur-0"
+              className="absolute -left-10 md:left-0 top-1/2 -translate-y-1/2 w-24 md:w-48 h-24 md:h-48 object-cover rounded-full border-4 border-white/50 blur-[1px] md:blur-0 opacity-40 md:opacity-100"
               referrerPolicy="no-referrer"
             />
             <motion.img 
@@ -209,24 +215,24 @@ export default function MasterQuizModule({ language, onBack, onComplete }: Props
               transition={{ repeat: Infinity, duration: 3 }}
               src={ASSETS.pineapple}
               alt="Pineapple"
-              className="absolute -right-10 md:right-4 bottom-4 w-40 md:w-56 h-40 md:h-56 object-cover rounded-[2rem] border-4 border-yellow-400 rotate-12 shadow-lg"
+              className="absolute -right-10 md:right-4 bottom-2 w-24 md:w-40 h-24 md:h-40 object-cover rounded-[1.5rem] md:rounded-[2rem] border-4 border-yellow-400 rotate-12 shadow-lg"
               referrerPolicy="no-referrer"
             />
             
-            <div className="z-10 flex flex-col items-center gap-2">
+            <div className="z-10 flex flex-col items-center gap-1 md:gap-2">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="bg-white p-4 rounded-full shadow-xl mb-2"
+                className="bg-white p-1 md:p-3 rounded-full shadow-xl mb-0.5"
               >
-                <Star size={48} className="text-yellow-500 fill-yellow-500" />
+                <Star size={24} className="text-yellow-500 fill-yellow-500 md:size-8" />
               </motion.div>
-              <h1 className="text-5xl md:text-7xl font-black tracking-tighter drop-shadow-lg text-center leading-none">
+              <h1 className="text-2xl md:text-5xl font-black tracking-tighter drop-shadow-lg text-center leading-none">
                 {t('quizTitle')}
               </h1>
-              <div className="flex gap-2 bg-black/20 backdrop-blur-md px-6 py-2 rounded-full border border-white/20">
-                <Sparkles size={20} className="text-yellow-300" />
-                <span className="font-bold text-lg uppercase tracking-widest">Question {totalAttempted + 1}/10</span>
+              <div className="flex gap-2 bg-black/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
+                <Sparkles size={12} className="text-yellow-300 md:size-4" />
+                <span className="font-bold text-[8px] md:text-sm uppercase tracking-widest">Question {totalAttempted + 1}/10</span>
               </div>
             </div>
 
@@ -251,28 +257,28 @@ export default function MasterQuizModule({ language, onBack, onComplete }: Props
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 1.1, y: -20 }}
-                className="flex flex-col gap-6"
+                className="flex flex-col gap-4"
               >
-                <div className="bg-white p-6 md:p-10 rounded-[3rem] shadow-xl border-b-8 border-indigo-100 flex flex-col items-center gap-6 text-center group relative overflow-hidden">
+                <div className="bg-white p-4 md:p-6 rounded-[2rem] md:rounded-[2.5rem] shadow-xl border-b-8 border-indigo-100 flex flex-col items-center gap-4 text-center group relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-200 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   
                   <button 
                     onClick={() => speak(currentQuestion.prompt, language)}
-                    className="p-8 bg-indigo-600 text-white rounded-[2.5rem] shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all relative overflow-hidden"
+                    className="p-4 md:p-6 bg-indigo-600 text-white rounded-[1.5rem] md:rounded-[2rem] shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all relative overflow-hidden"
                   >
-                    <Volume2 size={48} className="relative z-10" />
+                    <Volume2 className="size-6 md:size-10 relative z-10" />
                     <motion.div 
                       animate={{ scale: [1, 1.5, 1], opacity: [0, 0.2, 0] }}
                       transition={{ repeat: Infinity, duration: 2 }}
                       className="absolute inset-0 bg-white"
                     />
                   </button>
-                  <h2 className="text-4xl md:text-5xl font-black text-gray-800 tracking-tight leading-tight px-4">
+                  <h2 className="text-xl md:text-3xl font-black text-gray-800 tracking-tight leading-tight px-4">
                     {currentQuestion.prompt}
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6 pb-20">
+                <div className="grid grid-cols-2 gap-3 md:gap-4 pb-20">
                   {currentQuestion.options.map((option, idx) => (
                     <motion.button
                       key={`${option.id}-${idx}`}
@@ -283,22 +289,22 @@ export default function MasterQuizModule({ language, onBack, onComplete }: Props
                       whileTap={{ scale: 0.95 }}
                       onClick={() => handleAnswer(option)}
                       className={`
-                        relative bg-white rounded-[3rem] p-6 shadow-xl border-4 transition-all min-h-[140px] md:min-h-[220px] flex items-center justify-center overflow-hidden
+                        relative bg-white rounded-[1.5rem] md:rounded-[2rem] p-3 md:p-4 shadow-xl border-4 transition-all min-h-[100px] md:min-h-[180px] flex items-center justify-center overflow-hidden
                         ${feedback === 'correct' && option.id === currentQuestion.correctAnswer.id ? 'border-green-500 bg-green-50' : 
                           feedback === 'wrong' && option.id !== currentQuestion.correctAnswer.id ? 'border-red-100 bg-red-50' : 'border-white hover:border-indigo-200'}
                       `}
                     >
                       {currentQuestion.type === 'letter' ? (
-                        <span className="text-[8rem] md:text-[10rem] font-black text-indigo-500 drop-shadow-sm">{option.id}</span>
+                        <span className="text-[4rem] md:text-[8rem] font-black text-indigo-500 drop-shadow-sm">{option.id}</span>
                       ) : currentQuestion.type === 'number' ? (
-                        <span className="text-[8rem] md:text-[10rem] font-black text-blue-500 drop-shadow-sm">{option.id}</span>
+                        <span className="text-[4rem] md:text-[8rem] font-black text-blue-500 drop-shadow-sm">{option.id}</span>
                       ) : currentQuestion.type === 'shape' ? (
-                        <div className="text-[10rem] md:text-[12rem] drop-shadow-lg filter" style={{ color: option.color }}>{option.symbol}</div>
+                        <div className="text-[5rem] md:text-[10rem] drop-shadow-lg filter" style={{ color: option.color }}>{option.symbol}</div>
                       ) : (
                         <img 
                           src={option.img} 
                           alt={option.name.en} 
-                          className="w-full h-full object-cover rounded-[2rem] shadow-inner"
+                          className="w-full h-full object-cover rounded-[1rem] md:rounded-[1.5rem] shadow-inner"
                           referrerPolicy="no-referrer"
                         />
                       )}

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Music, Play } from 'lucide-react';
 import { Language } from '../types';
-import { speak } from '../lib/utils';
+import { speak, playSound, SOUNDS, triggerConfetti } from '../lib/utils';
 import ModuleHeader from '../components/ModuleHeader';
 
 const RHYMES = [
@@ -62,7 +62,10 @@ export default function RhymesModule({ language, onBack }: Props) {
           </div>
 
           <button 
-            onClick={() => speak(selectedRhyme.content[language] || selectedRhyme.content.en, language)}
+            onClick={() => {
+              playSound(SOUNDS.POP);
+              speak(selectedRhyme.content[language] || selectedRhyme.content.en, language);
+            }}
             className="flex items-center gap-3 px-10 py-5 bg-purple-500 text-white rounded-full font-black text-2xl shadow-lg border-b-8 border-purple-700 active:border-b-0 active:translate-y-2 transition-all"
           >
             <Play fill="white" />
@@ -74,7 +77,10 @@ export default function RhymesModule({ language, onBack }: Props) {
           {RHYMES.map(rhyme => (
             <button
               key={rhyme.id}
-              onClick={() => setSelectedRhyme(rhyme)}
+              onClick={() => {
+              playSound(SOUNDS.POP);
+              setSelectedRhyme(rhyme);
+            }}
               className={`flex-shrink-0 px-8 py-6 rounded-[2rem] font-bold text-lg shadow-sm border-2 transition-all ${selectedRhyme.id === rhyme.id ? 'bg-purple-100 border-purple-500 text-purple-600 scale-105' : 'bg-white border-transparent text-gray-400'}`}
             >
               <span className="mr-2">{rhyme.icon}</span>

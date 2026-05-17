@@ -1,0 +1,23 @@
+{
+  "name": "Kids Learning World",
+  "short_name": "KidsWorld",
+  "description": "Fun and interactive learning for children.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F0F9FF",
+  "theme_color": "#4F46E5",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/lucide-react/lucide/main/icons/star.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://raw.githubusercontent.com/lucide-react/lucide/main/icons/star.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

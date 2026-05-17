@@ -139,6 +139,36 @@ export const UI_TRANSLATIONS: Record<string, TranslationMap> = {
     te: 'మొత్తం నేర్చుకునే సమయం',
     hi: 'कुल सीखने का समय'
   },
+  supportUs: {
+    en: 'Support Our Mission',
+    te: 'మా మిషన్‌కు మద్దతు ఇవ్వండి',
+    hi: 'हमारे मिशन का समर्थन करें'
+  },
+  donationIntro: {
+    en: 'Your small contribution helps us keep the app free and safe for all children.',
+    te: 'మీ చిన్న సహకారం మాకు ఈ యాప్‌ను అందరు పిల్లల కోసం ఉచితంగా మరియు సురక్షితంగా ఉంచడంలో సహాయపడుతుంది.',
+    hi: 'आपका छोटा सा योगदान हमें इस ऐप को सभी बच्चों के लिए मुफ्त और सुरक्षित रखने में मदद करता है।'
+  },
+  oneTime: {
+    en: 'One-time Donation',
+    te: 'ఒకసారి విరాళం',
+    hi: 'एक बार दान'
+  },
+  twoTime: {
+    en: 'Double Support',
+    te: 'రెట్టింపు మద్దతు',
+    hi: 'दोगुना समर्थन'
+  },
+  threeTime: {
+    en: 'Triple Support',
+    te: 'ముమ్మడి మద్దతు',
+    hi: 'तिगुना समर्थन'
+  },
+  donationSuccess: {
+    en: 'Thank you for your generous support! ❤️',
+    te: 'మీ ఉదారమైన మద్దతుకు ధన్యవాదాలు! ❤️',
+    hi: 'आपके उदार समर्थन के लिए धन्यवाद! ❤️'
+  },
   letsLearn: {
     en: "Let's Learn!",
     te: 'నేర్చుకుందాం!',
@@ -472,6 +502,17 @@ export const GOOD_HABITS = [
     },
     icon: '🗑️', 
     img: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=400&q=80' 
+  },
+  { 
+    id: 'sleeping', 
+    name: { en: 'Sleep Early', te: 'త్వరగా నిద్రపోవడం', hi: 'जल्दी सोना' }, 
+    description: { 
+      en: 'Sleep early and wake up early to stay active and full of energy!', 
+      te: 'చురుకుగా మరియు శక్తితో ఉండటానికి త్వరగా నిద్రపోండి మరియు త్వరగా మేల్కొనండి!', 
+      hi: 'सक्रिय और ऊर्जा से भरपूर रहने के लिए जल्दी सोएं और जल्दी जागें!' 
+    },
+    icon: '😴', 
+    img: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=400&q=80' 
   }
 ];
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Volume2 } from 'lucide-react';
 import { Language } from '../types';
-import { speak } from '../lib/utils';
+import { speak, playSound, SOUNDS, triggerConfetti } from '../lib/utils';
 import ModuleHeader from '../components/ModuleHeader';
 
 const COLORS = [
@@ -19,7 +19,7 @@ const COLORS = [
 interface Props {
   language: Language;
   onBack: () => void;
-  onComplete: () => void;
+  onComplete: (id?: string) => void;
 }
 
 export default function ColorsModule({ language, onBack, onComplete }: Props) {
@@ -27,10 +27,12 @@ export default function ColorsModule({ language, onBack, onComplete }: Props) {
   const selectedColor = COLORS[currentIndex];
 
   const nextItem = () => {
+    playSound(SOUNDS.POP);
     setCurrentIndex((prev) => (prev + 1) % COLORS.length);
   };
 
   const prevItem = () => {
+    playSound(SOUNDS.POP);
     setCurrentIndex((prev) => (prev - 1 + COLORS.length) % COLORS.length);
   };
 
@@ -84,7 +86,9 @@ export default function ColorsModule({ language, onBack, onComplete }: Props) {
                 <button 
                   onClick={() => {
                     speak(selectedColor.name[language], language);
-                    onComplete();
+                    playSound(SOUNDS.TADA);
+                    triggerConfetti();
+                    onComplete(`color-${selectedColor.id}`);
                   }}
                   className="p-5 bg-gray-50 text-gray-700 rounded-3xl hover:bg-gray-100 transition-all flex items-center justify-center gap-4 mx-auto w-full border-2 border-gray-100 shadow-sm"
                 >

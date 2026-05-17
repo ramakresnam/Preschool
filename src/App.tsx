@@ -9,11 +9,13 @@ import {
   Type, Hash, Palette, Shapes as ShapesIcon, PawPrint, Apple, User, Pencil, Bus, Music,
   Settings, Star, ArrowLeft, Volume2, VolumeX, Languages, X, Clock, PieChart, Shield, Lock,
   Sparkles,
-  BarChart3, Target, Coins, TrendingUp, Handshake, Info
+  BarChart3, Target, Coins, TrendingUp, Handshake, Info,
+  Coffee, HeartHandshake, CreditCard, Gift
 } from 'lucide-react';
+import { loadStripe } from '@stripe/stripe-js';
 import { Language, UserProgress, Module, TranslationMap } from './types';
 import { MODULES, UI_TRANSLATIONS, FRUITS, VEHICLES, BODY_PARTS, ANIMALS, MASCOT, LANGUAGES_INFO, GOOD_HABITS, VEGETABLES, SOLAR_SYSTEM, DINOSAURS, NUMBERS_GENERAL, SHAPES } from './data/learningContent';
-import { speak, triggerConfetti } from './lib/utils';
+import { speak, triggerConfetti, playSound, SOUNDS } from './lib/utils';
 
 // Sub-modules
 import AlphabetModule from './modules/AlphabetModule';
@@ -24,6 +26,30 @@ import ShapesModule from './modules/ShapesModule';
 import GeneralModule from './modules/GeneralModule';
 import RhymesModule from './modules/RhymesModule';
 import MasterQuizModule from './modules/MasterQuizModule';
+import Logo from './components/Logo';
+
+function MagicStar() {
+  return (
+    <motion.div
+      initial={{ x: -100, y: "20vh", rotate: 0, opacity: 0 }}
+      animate={{ 
+        x: "110vw", 
+        y: ["20vh", "30vh", "20vh"],
+        rotate: 360,
+        opacity: [0, 1, 1, 0]
+      }}
+      transition={{ 
+        duration: 8, 
+        repeat: Infinity, 
+        repeatDelay: 15,
+        ease: "linear" 
+      }}
+      className="fixed z-20 pointer-events-none text-4xl"
+    >
+      ✨
+    </motion.div>
+  );
+}
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<'home' | string>('home');
@@ -35,7 +61,8 @@ export default function App() {
     settings: {
       speechSpeed: 0.9,
       adsEnabled: true,
-      interstitialFrequency: 0.5
+      interstitialFrequency: 0.5,
+      defaultDonationAmount: 5
     },
     analytics: {}
   });
@@ -50,13 +77,26 @@ export default function App() {
 
   const [showAd, setShowAd] = useState(false);
   const [lastAdTime, setLastAdTime] = useState(0);
+  const [donationStatus, setDonationStatus] = useState<'success' | 'cancel' | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('payment') === 'success') {
+      setDonationStatus('success');
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (params.get('payment') === 'cancel') {
+      setDonationStatus('cancel');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem('kids-learning-world-progress');
     if (saved) {
       const parsed = JSON.parse(saved);
       // Ensure settings and analytics exist
-      if (!parsed.settings) parsed.settings = { speechSpeed: 0.9, adsEnabled: true, interstitialFrequency: 0.5 };
+      if (!parsed.settings) parsed.settings = { speechSpeed: 0.9, adsEnabled: true, interstitialFrequency: 0.5, defaultDonationAmount: 5 };
       if (!parsed.analytics) parsed.analytics = {};
       setProgress(parsed);
     }
@@ -98,8 +138,11 @@ export default function App() {
     }
   };
 
-  const addStar = () => {
+  const addStar = (itemId?: string) => {
     const newProgress = { ...progress, stars: progress.stars + 1 };
+    if (itemId && !newProgress.completedItems.includes(itemId)) {
+      newProgress.completedItems.push(itemId);
+    }
     saveProgress(newProgress);
     triggerConfetti();
     setMascotExpression(MASCOT.cheering);
@@ -127,6 +170,7 @@ export default function App() {
     saveProgress(newProgress);
 
     // Ad Logic
+    playSound(SOUNDS.POP);
     if (progress.settings?.adsEnabled && Math.random() < (progress.settings?.interstitialFrequency || 0.5)) {
       setShowAd(true);
       setTimeout(() => {
@@ -150,6 +194,8 @@ export default function App() {
             isMusicOn={isMusicOn}
             setIsMusicOn={setIsMusicOn}
             t={t}
+            currentScreen={currentScreen}
+            setCurrentScreen={setCurrentScreen}
           />
         );
       case 'abc':
@@ -202,10 +248,64 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F0F9FF] font-sans overflow-x-hidden select-none">
+    <div className="min-h-screen bg-[#F0F9FF] font-sans overflow-x-hidden select-none relative">
+      <MagicStar />
+      {/* Decorative Background Blobs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-20 z-0">
+          <motion.div 
+              animate={{ 
+                  scale: [1, 1.2, 1],
+                  x: [0, 50, 0],
+                  y: [0, 30, 0]
+              }}
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-pink-300 rounded-full blur-[100px]"
+          />
+          <motion.div 
+              animate={{ 
+                  scale: [1.2, 1, 1.2],
+                  x: [0, -50, 0],
+                  y: [0, -30, 0]
+              }}
+              transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-300 rounded-full blur-[120px]"
+          />
+          <motion.div 
+              animate={{ 
+                  scale: [1, 1.5, 1],
+                  x: [0, 20, 0],
+                  y: [0, 40, 0]
+              }}
+              transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-[30%] right-[10%] w-[25%] h-[25%] bg-yellow-200 rounded-full blur-[80px]"
+          />
+      </div>
+
       <AnimatePresence mode="wait">
         {isLocked ? (
           <LockScreen t={t} key="lock" />
+        ) : donationStatus === 'success' ? (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 bg-white z-[300] flex flex-col items-center justify-center p-6 text-center"
+          >
+             <motion.div 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="bg-green-100 p-8 rounded-full text-green-600 mb-6"
+             >
+                <HeartHandshake size={80} />
+             </motion.div>
+             <h2 className="text-4xl font-black text-gray-800 mb-4">{t('donationSuccess')}</h2>
+             <p className="text-xl text-gray-500 font-bold max-w-md mx-auto mb-10">{t('donationIntro')}</p>
+             <button 
+              onClick={() => setDonationStatus(null)}
+              className="px-10 py-5 bg-indigo-600 text-white rounded-[2rem] font-black text-xl shadow-xl hover:scale-110 active:scale-95 transition-all"
+             >
+                GO BACK
+             </button>
+          </motion.div>
         ) : showAd ? (
           <InterstitialAd 
             onClose={() => setShowAd(false)} 
@@ -218,26 +318,26 @@ export default function App() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="w-full max-w-4xl mx-auto min-h-screen"
+            className="relative z-10 w-full max-w-4xl mx-auto min-h-screen"
           >
             {renderScreen()}
             {currentScreen === 'home' && progress.settings?.adsEnabled && (
               <AdBanner language={language} t={t} />
             )}
             {currentScreen === 'home' && (
-              <div className="fixed bottom-10 right-10 flex flex-col items-center gap-4 pointer-events-none">
+              <div className="fixed bottom-24 md:bottom-10 right-6 md:right-10 flex flex-col items-center gap-2 md:gap-4 pointer-events-none">
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.5 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="bg-white px-6 py-3 rounded-[2rem] shadow-xl border-2 border-blue-100 text-blue-600 font-bold text-lg relative"
+                  className="bg-white px-4 md:px-6 py-2 md:py-3 rounded-[1.5rem] md:rounded-[2rem] shadow-xl border-2 border-blue-100 text-blue-600 font-bold text-sm md:text-lg relative"
                 >
                    {mascotExpression === MASCOT.cheering ? t('amazing') : t('letsLearn')}
-                   <div className="absolute -bottom-2 right-10 w-4 h-4 bg-white border-r-2 border-b-2 border-blue-100 rotate-45" />
+                   <div className="absolute -bottom-2 right-6 md:right-10 w-3 h-3 md:w-4 md:h-4 bg-white border-r-2 border-b-2 border-blue-100 rotate-45" />
                 </motion.div>
                 <motion.div 
-                  animate={{ y: [0, -20, 0] }}
+                  animate={{ y: [0, -10, 0] }}
                   transition={{ duration: 3, repeat: Infinity }}
-                  className="text-8xl filter drop-shadow-lg"
+                  className="text-6xl md:text-8xl filter drop-shadow-lg"
                 >
                   {mascotExpression}
                 </motion.div>
@@ -458,7 +558,7 @@ function ParentModal({ t, progress, screenTimeLimit, setScreenTimeLimit, onClose
 
   const updateSettings = (key: string, val: any) => {
     const newProgress = { ...progress };
-    if (!newProgress.settings) newProgress.settings = { speechSpeed: 0.9, adsEnabled: true, interstitialFrequency: 0.5 };
+    if (!newProgress.settings) newProgress.settings = { speechSpeed: 0.9, adsEnabled: true, interstitialFrequency: 0.5, defaultDonationAmount: 5 };
     newProgress.settings = { ...newProgress.settings, [key]: val };
     saveProgress(newProgress);
   };
@@ -510,6 +610,7 @@ function ParentModal({ t, progress, screenTimeLimit, setScreenTimeLimit, onClose
     { id: 'dashboard', label: t('progress'), icon: BarChart3 },
     { id: 'settings', label: t('parentSettings'), icon: Settings },
     { id: 'monetization', label: t('monetization'), icon: Coins },
+    { id: 'donation', label: t('supportUs'), icon: HeartHandshake },
     { id: 'analytics', label: t('analytics'), icon: TrendingUp }
   ];
 
@@ -518,56 +619,56 @@ function ParentModal({ t, progress, screenTimeLimit, setScreenTimeLimit, onClose
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-6"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-0 md:p-6"
     >
       <motion.div 
         initial={{ scale: 0.9, y: 20 }}
         animate={{ scale: 1, y: 0 }}
-        className="bg-white rounded-[3rem] w-full max-w-4xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden"
+        className="bg-white md:rounded-[3rem] w-full max-w-4xl shadow-2xl flex flex-col h-full md:max-h-[90vh] overflow-hidden"
       >
         {/* Header */}
-        <div className="p-8 border-b flex items-center justify-between bg-gray-50">
-          <div className="flex items-center gap-4">
-            <div className="bg-indigo-600 p-3 rounded-2xl text-white">
-              <Shield size={24} />
+        <div className="p-4 md:p-8 border-b flex items-center justify-between bg-gray-50">
+          <div className="flex items-center gap-3 md:gap-4">
+            <div className="bg-indigo-600 p-2 md:p-3 rounded-xl md:rounded-2xl text-white">
+              <Shield size={20} className="md:size-6" />
             </div>
             <div>
-              <h3 className="text-2xl font-black text-gray-800">{t('adminSection')}</h3>
-              <p className="text-gray-400 font-bold text-xs uppercase tracking-widest">Parental Controls & Ads Panel</p>
+              <h3 className="text-xl md:text-2xl font-black text-gray-800">{t('adminSection')}</h3>
+              <p className="text-gray-400 font-bold text-[10px] uppercase tracking-widest">Parental Controls & Ads Panel</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-3 bg-white rounded-2xl text-gray-400 hover:text-red-500 shadow-sm border transition-colors">
-            <X size={24} />
+          <button onClick={onClose} className="p-2 md:p-3 bg-white rounded-xl md:rounded-2xl text-gray-400 hover:text-red-500 shadow-sm border transition-colors">
+            <X size={20} className="md:size-6" />
           </button>
         </div>
 
-        <div className="flex flex-1 overflow-hidden">
-          {/* Sidebar Tabs */}
-          <div className="w-64 bg-gray-50 border-r p-6 space-y-2">
+        <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+          {/* Sidebar Tabs / Mobile Top Nav */}
+          <div className="flex md:flex-col overflow-x-auto md:overflow-x-visible md:w-64 bg-gray-50 border-b md:border-b-0 md:border-r p-4 md:p-6 space-x-2 md:space-x-0 md:space-y-2 custom-scrollbar">
             {tabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm transition-all ${activeTab === tab.id ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:bg-white hover:shadow-sm'}`}
+                className={`flex-shrink-0 flex items-center gap-2 md:gap-3 px-4 py-2 md:py-3 rounded-xl md:rounded-2xl font-bold text-[10px] md:text-sm transition-all ${activeTab === tab.id ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:bg-white hover:shadow-sm'}`}
               >
-                <tab.icon size={20} />
-                {tab.label}
+                <tab.icon size={16} className="md:size-5" />
+                <span className="whitespace-nowrap">{tab.label}</span>
               </button>
             ))}
             
-            <div className="pt-10">
+            <div className="md:pt-10 flex-shrink-0">
                <button 
                   onClick={onResetProgress}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm text-red-500 hover:bg-red-50 transition-all"
+                  className="flex items-center gap-2 md:gap-3 px-4 py-2 md:py-3 rounded-xl md:rounded-2xl font-bold text-[10px] md:text-sm text-red-500 hover:bg-red-50 transition-all whitespace-nowrap"
                 >
-                  <X size={20} />
+                  <X size={16} className="md:size-5" />
                   {t('resetProgress')}
                 </button>
             </div>
           </div>
 
           {/* Content Area */}
-          <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
             <AnimatePresence mode="wait">
               {activeTab === 'dashboard' && (
                 <motion.div 
@@ -577,7 +678,7 @@ function ParentModal({ t, progress, screenTimeLimit, setScreenTimeLimit, onClose
                   exit={{ opacity: 0, x: -20 }}
                   className="space-y-8"
                 >
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div className="bg-blue-50 p-6 rounded-[2rem] border border-blue-100">
                       <div className="flex items-center gap-3 text-blue-600 mb-2">
                          <Star size={20} />
@@ -591,6 +692,15 @@ function ParentModal({ t, progress, screenTimeLimit, setScreenTimeLimit, onClose
                          <span className="font-bold text-xs uppercase tracking-widest">Items Learnt</span>
                       </div>
                       <div className="text-4xl font-black text-purple-900">{progress.completedItems.length}</div>
+                    </div>
+                    <div className="bg-green-50 p-6 rounded-[2rem] border border-green-100">
+                      <div className="flex items-center gap-3 text-green-600 mb-2">
+                         <Sparkles size={20} />
+                         <span className="font-bold text-xs uppercase tracking-widest">Good Habits</span>
+                      </div>
+                      <div className="text-4xl font-black text-green-900">
+                        {progress.completedItems.filter(id => GOOD_HABITS.some(h => h.id === id)).length}
+                      </div>
                     </div>
                   </div>
 
@@ -736,6 +846,97 @@ function ParentModal({ t, progress, screenTimeLimit, setScreenTimeLimit, onClose
                 </motion.div>
               )}
 
+              {activeTab === 'donation' && (
+                <motion.div 
+                  key="donation"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-8"
+                >
+                  <div className="bg-indigo-50 border border-indigo-100 p-8 rounded-[2.5rem] flex items-center gap-6">
+                    <div className="bg-white p-4 rounded-3xl text-indigo-600 shadow-sm border border-indigo-50">
+                      <Gift size={40} />
+                    </div>
+                    <div>
+                      <h4 className="text-2xl font-black text-gray-800">{t('supportUs')}</h4>
+                      <p className="text-indigo-900/60 font-bold">{t('donationIntro')}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {[
+                      { id: 'one', label: t('oneTime'), amount: 5, icon: Coffee, color: 'bg-orange-50 text-orange-600 border-orange-100' },
+                      { id: 'two', label: t('twoTime'), amount: 15, icon: Gift, color: 'bg-pink-50 text-pink-600 border-pink-100' },
+                      { id: 'three', label: t('threeTime'), amount: 30, icon: HeartHandshake, color: 'bg-indigo-50 text-indigo-600 border-indigo-100' }
+                    ].map(tier => {
+                      const isDefault = progress.settings?.defaultDonationAmount === tier.amount;
+                      return (
+                        <div key={tier.id} className="relative">
+                          {isDefault && (
+                            <motion.div 
+                              layoutId="default-badge"
+                              className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 bg-indigo-600 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg border-2 border-white"
+                            >
+                              PRE-SELECTED
+                            </motion.div>
+                          )}
+                          <button
+                            onClick={async () => {
+                              try {
+                                const response = await fetch('/api/create-checkout-session', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    amount: tier.amount,
+                                    name: tier.label
+                                  })
+                                });
+                                const data = await response.json();
+                                if (data.url) {
+                                  window.location.href = data.url;
+                                } else if (data.error) {
+                                  alert(data.error);
+                                }
+                              } catch (err: any) {
+                                console.error("Payment failed", err);
+                                alert("Failed to connect to payment server. Please check your internet connection.");
+                              }
+                            }}
+                            className={`w-full p-6 rounded-[2rem] border-2 flex flex-col items-center gap-4 transition-all hover:scale-105 active:scale-95 ${tier.color} ${isDefault ? 'ring-4 ring-indigo-600/20 border-indigo-600' : 'hover:border-current'}`}
+                          >
+                             <tier.icon size={32} />
+                             <div className="text-center">
+                                <span className="block font-black text-lg">{tier.label}</span>
+                                <span className="text-2xl font-black opacity-80">${tier.amount}</span>
+                             </div>
+                             <div className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 ${isDefault ? 'bg-indigo-600 text-white' : 'bg-white/50'}`}>
+                               <CreditCard size={14} /> Buy Now
+                             </div>
+                          </button>
+                          
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updateSettings('defaultDonationAmount', tier.amount);
+                            }}
+                            className={`mt-3 w-full py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-dashed transition-all ${isDefault ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'hover:bg-gray-50 border-gray-200 text-gray-400'}`}
+                          >
+                            {isDefault ? 'Default Saved' : 'Set as Default'}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="p-6 bg-gray-50 rounded-3xl border border-dashed text-center">
+                     <p className="text-gray-400 text-sm font-medium italic">
+                        Payments are securely processed by Stripe. No credit card details are stored on our servers.
+                     </p>
+                  </div>
+                </motion.div>
+              )}
+
               {activeTab === 'analytics' && (
                 <motion.div 
                   key="analytics"
@@ -807,28 +1008,18 @@ function ParentModal({ t, progress, screenTimeLimit, setScreenTimeLimit, onClose
   );
 }
 
-function Logo({ t }: any) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="relative">
-        <div className="w-14 h-14 bg-gradient-to-tr from-yellow-400 to-orange-400 rounded-2xl shadow-lg rotate-6 flex items-center justify-center border-4 border-white">
-          <Star className="text-white fill-white" size={28} />
-        </div>
-        <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white p-1 rounded-lg border-2 border-white">
-          <Pencil size={12} />
-        </div>
-      </div>
-      <div>
-        <h1 className="text-2xl md:text-3xl font-black text-blue-600 tracking-tighter leading-none">
-          PRESCHOOL <span className="text-pink-500 uppercase">Learning</span>
-        </h1>
-        <p className="text-[10px] md:text-xs font-black text-orange-400 tracking-[0.2em] uppercase">Adventure</p>
-      </div>
-    </div>
-  );
-}
-
-function HomeScreen({ language, onOpenLanguagePicker, onSelectModule, onShowParentSection, progress, isMusicOn, setIsMusicOn, t }: any) {
+function HomeScreen({ 
+  language, 
+  onOpenLanguagePicker, 
+  onSelectModule, 
+  onShowParentSection, 
+  progress, 
+  isMusicOn, 
+  setIsMusicOn, 
+  t,
+  currentScreen,
+  setCurrentScreen
+}: any) {
   const iconMap: any = { 
     Type, Hash, Palette, 
     Shapes: ShapesIcon, 
@@ -841,8 +1032,8 @@ function HomeScreen({ language, onOpenLanguagePicker, onSelectModule, onShowPare
   return (
     <div className="p-6 md:p-10">
       {/* Header */}
-      <header className="flex items-center justify-between mb-8">
-        <Logo t={t} />
+      <header className="flex flex-col md:flex-row items-center justify-between mb-8 gap-6 md:gap-0">
+        <Logo text={t('appName')} className="scale-75 md:scale-100 origin-left" />
 
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-2 bg-yellow-100 px-4 py-2 rounded-2xl border-2 border-yellow-200">
@@ -988,7 +1179,7 @@ function HomeScreen({ language, onOpenLanguagePicker, onSelectModule, onShowPare
       </div>
 
       {/* Main Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 pb-24 md:pb-0">
         {mainModules.map((mod, idx) => {
           const Icon = iconMap[mod.icon] || Type;
           const title = mod.title[language] || mod.title.en;
@@ -997,7 +1188,7 @@ function HomeScreen({ language, onOpenLanguagePicker, onSelectModule, onShowPare
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               whileHover={{ scale: 1.05, rotate: [0, -1, 1, 0] }}
-              whileTap={{ scale: 0.95 }}
+              whileTap={{ scale: 0.9 }}
               transition={{ 
                 type: "spring", 
                 stiffness: 400, 
@@ -1006,24 +1197,47 @@ function HomeScreen({ language, onOpenLanguagePicker, onSelectModule, onShowPare
               }}
               key={mod.id}
               onClick={() => onSelectModule(mod.id)}
-              className={`relative overflow-hidden group p-6 rounded-[2.5rem] shadow-lg border-b-8 border-black/10 transition-all ${mod.color}`}
+              className={`relative overflow-hidden group p-4 md:p-6 rounded-[2rem] md:rounded-[2.5rem] shadow-lg border-b-8 border-black/10 transition-all flex flex-col items-center justify-center min-h-[140px] md:min-h-[200px] ${mod.color}`}
             >
               <div className="absolute -right-4 -top-4 opacity-10 group-hover:rotate-12 group-hover:scale-110 transition-transform duration-500">
-                <Icon size={120} />
+                <Icon size={100} className="md:size-32" />
               </div>
-              <div className="relative z-10 flex flex-col items-center text-white text-center gap-4">
+              <div className="relative z-10 flex flex-col items-center text-white text-center gap-3 md:gap-4">
                 <motion.div 
-                  className="bg-white/20 p-4 rounded-3xl backdrop-blur-sm"
+                  className="bg-white/20 p-3 md:p-4 rounded-2xl md:rounded-3xl backdrop-blur-sm"
                   whileHover={{ rotate: [0, -10, 10, 0] }}
                   transition={{ duration: 0.5 }}
                 >
-                  <Icon size={48} />
+                  <Icon className="size-8 md:size-12" />
                 </motion.div>
-                <h3 className="text-2xl font-black">{title}</h3>
+                <h3 className="text-sm md:text-2xl font-black leading-tight">{title}</h3>
               </div>
+              
+              {/* Icon-like sheen */}
+              <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
             </motion.button>
           );
         })}
+      </div>
+
+      {/* Mobile Tab Nav */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-gray-100 flex items-center justify-around px-2 z-[100] rounded-t-[2rem] shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
+         <button onClick={() => setCurrentScreen('home')} className={`flex flex-col items-center gap-1 ${currentScreen === 'home' ? 'text-indigo-600' : 'text-gray-400'}`}>
+            <Star size={24} className={currentScreen === 'home' ? 'fill-current' : ''} />
+            <span className="text-[10px] font-black uppercase">Learn</span>
+         </button>
+         <button onClick={() => onSelectModule('quiz')} className={`flex flex-col items-center gap-1 ${currentScreen === 'quiz' ? 'text-indigo-600' : 'text-gray-400'}`}>
+            <Target size={24} />
+            <span className="text-[10px] font-black uppercase">Quiz</span>
+         </button>
+         <button onClick={() => onSelectModule('drawing')} className={`flex flex-col items-center gap-1 ${currentScreen === 'drawing' ? 'text-indigo-600' : 'text-gray-400'}`}>
+            <Pencil size={24} />
+            <span className="text-[10px] font-black uppercase">Draw</span>
+         </button>
+         <button onClick={() => onShowParentSection()} className="flex flex-col items-center gap-1 text-gray-400">
+            <Lock size={24} />
+            <span className="text-[10px] font-black uppercase">Parent</span>
+         </button>
       </div>
 
 
