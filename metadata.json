@@ -1,0 +1,8 @@
+{
+  "name": "Preschool Learning Adventure",
+  "description": "A colorful and interactive educational app for children aged 2-6 to learn alphabets, numbers, colors, shapes, and more in English, Telugu, and Hindi.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
